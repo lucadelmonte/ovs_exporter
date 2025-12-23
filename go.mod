@@ -21,3 +21,5 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect
 )
+
+replace github.com/greenpau/ovsdb => github.com/lucadelmonte/ovsdb v1.0.5
