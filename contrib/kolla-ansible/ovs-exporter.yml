@@ -1,0 +1,11 @@
+---
+# OVN Controller Socket and PID File Host Mounts
+# This exposes /var/run/openvswitch/ovn-controller/ to the host filesystem
+# for external tools like ovs-exporter to access the ovn-controller status
+#
+# Copy this file to your kolla-ansible configuration:
+#   cp ovs.yml /etc/kolla/globals.d/ovs.yml
+# Or merge with existing group_vars/all.yml
+
+ovn_controller_extra_volumes:
+  - "/var/run/openvswitch/ovn-controller:/var/run/openvswitch/ovn-controller:rw"
