@@ -27,6 +27,11 @@ builds:
     binary: ovs-exporter
 archives:
   - name_template: "ovs-exporter_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
+    files:
+      - install.sh
+      - assets/**/*
+      - LICENSE
+      - README.md
 checksum:
   name_template: 'checksums.txt'
 snapshot:
