@@ -36,7 +36,7 @@ kolla-ansible -i inventory reconfigure -t ovn
 Download and extract the exporter binary:
 
 ```bash
-wget https://github.com/lucadelmonte/ovs_exporter/releases/download/v2.4.0/ovs-exporter-2.4.0.linux-amd64.tar.gz
+wget https://github.com/lucadelmonte/ovs_exporter/releases/download/v2.4.1/ovs-exporter-2.4.0.linux-amd64.tar.gz
 tar -xzf ovs-exporter-2.4.0.linux-amd64.tar.gz
 cd ovs-exporter-2.4.0.linux-amd64
 ```
@@ -53,17 +53,17 @@ Download and install the environment file with Kolla-specific paths:
 
 ```bash
 # For RHEL/CentOS
-sudo wget -O /etc/sysconfig/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.0/contrib/kolla-ansible/ovs-exporter.env
+sudo wget -O /etc/sysconfig/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.1/contrib/kolla-ansible/ovs-exporter.env
 
 # For Debian/Ubuntu
-sudo wget -O /etc/default/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.0/contrib/kolla-ansible/ovs-exporter.env
+sudo wget -O /etc/default/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.1/contrib/kolla-ansible/ovs-exporter.env
 ```
 
 Download and install systemd drop-in override for Kolla container dependencies:
 
 ```bash
 sudo mkdir -p /etc/systemd/system/ovs-exporter.service.d/
-sudo wget -O /etc/systemd/system/ovs-exporter.service.d/ovs-exporter-kolla.conf https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.0/contrib/kolla-ansible/ovs-exporter-kolla.conf
+sudo wget -O /etc/systemd/system/ovs-exporter.service.d/ovs-exporter-kolla.conf https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.1/contrib/kolla-ansible/ovs-exporter-kolla.conf
 ```
 
 ### 4. Start the Service
