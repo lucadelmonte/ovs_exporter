@@ -36,7 +36,8 @@ kolla-ansible -i inventory reconfigure -t ovn
 Download and extract the exporter binary:
 
 ```bash
-VERSION=2.4.2
+VERSION=$(curl -s https://api.github.com/repos/lucadelmonte/ovs_exporter/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+echo "Latest version: $VERSION"
 wget "https://github.com/lucadelmonte/ovs_exporter/releases/download/v$VERSION/ovs-exporter_${VERSION}_linux_amd64.tar.gz"
 mkdir ovs-exporter
 tar -xzf ovs-exporter_${VERSION}_linux_amd64.tar.gz -C ovs-exporter
