@@ -37,21 +37,10 @@ Download and extract the exporter binary:
 
 ```bash
 VERSION=2.4.2
-wget "https://github.com/lucadelmonte/ovs_exporter/releases/download/v$VERSION/ovs-exporter-$VERSION.linux-amd64.tar.gz"
+wget "https://github.com/lucadelmonte/ovs_exporter/releases/download/v$VERSION/ovs-exporter_${VERSION}_linux_amd64.tar.gz"
 mkdir ovs-exporter
-tar -xzf ovs-exporter-$VERSION.linux-amd64.tar.gz -C ovs-exporter
+tar -xzf ovs-exporter_${VERSION}_linux_amd64.tar.gz -C ovs-exporter
 cd ovs-exporter
-```
-
-Run the installation script to install the binary and default systemd service:
-
-```bash
-wget https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/install.sh
-chmod +x install.sh
-mkdir -p assets/systemd/
-wget -O assets/systemd/add_service.sh https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/assets/systemd/add_service.sh
-chmod +x assets/systemd/add_service.sh
-sudo ./install.sh
 ```
 
 ### 3. Configure for Kolla-Ansible
@@ -73,12 +62,11 @@ sudo mkdir -p /etc/systemd/system/ovs-exporter.service.d/
 sudo wget -O /etc/systemd/system/ovs-exporter.service.d/ovs-exporter-kolla.conf https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/contrib/kolla-ansible/ovs-exporter-kolla.conf
 ```
 
-### 4. Start the Service
+### 4. Install and Start the Service
+Run the installation script to install the binary and default systemd service:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable ovs-exporter
-sudo systemctl start ovs-exporter
+sudo ./install.sh
 ```
 
 ### 5. Verify

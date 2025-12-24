@@ -9,7 +9,7 @@ MYAPP_SERVICE=ovs-exporter
 MYAPP_BIN=/usr/sbin/ovs-exporter
 MYAPP_DESCRIPTION="Prometheus OVS Exporter"
 MYAPP_CONF="/etc/sysconfig/${MYAPP_SERVICE}"
-MYAPP_CONF_UBUNTU="/etc/sysconfig/${MYAPP_SERVICE}"
+MYAPP_CONF_UBUNTU="/etc/default/${MYAPP_SERVICE}"
 
 if [ -f "./${MYAPP}" ]; then
   rm -rf $MYAPP_BIN
