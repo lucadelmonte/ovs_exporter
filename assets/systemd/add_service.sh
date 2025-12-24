@@ -9,6 +9,7 @@ MYAPP_SERVICE=ovs-exporter
 MYAPP_BIN=/usr/sbin/ovs-exporter
 MYAPP_DESCRIPTION="Prometheus OVS Exporter"
 MYAPP_CONF="/etc/sysconfig/${MYAPP_SERVICE}"
+MYAPP_CONF_UBUNTU="/etc/sysconfig/${MYAPP_SERVICE}"
 
 if [ -f "./${MYAPP}" ]; then
   rm -rf $MYAPP_BIN
@@ -41,6 +42,7 @@ After=network.target
 User=${MYAPP_USER}
 Group=${MYAPP_GROUP}
 EnvironmentFile=-${MYAPP_CONF}
+EnvironmentFile=-${MYAPP_CONF_UBUNTU}
 ExecStart=${MYAPP_BIN} \$OPTIONS
 Restart=on-failure
 
