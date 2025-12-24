@@ -36,14 +36,21 @@ kolla-ansible -i inventory reconfigure -t ovn
 Download and extract the exporter binary:
 
 ```bash
-wget https://github.com/lucadelmonte/ovs_exporter/releases/download/v2.4.1/ovs-exporter-2.4.0.linux-amd64.tar.gz
-tar -xzf ovs-exporter-2.4.0.linux-amd64.tar.gz
-cd ovs-exporter-2.4.0.linux-amd64
+VERSION=2.4.2
+wget "https://github.com/lucadelmonte/ovs_exporter/releases/download/v$VERSION/ovs-exporter-$VERSION.linux-amd64.tar.gz"
+mkdir ovs-exporter
+tar -xzf ovs-exporter-$VERSION.linux-amd64.tar.gz -C ovs-exporter
+cd ovs-exporter
 ```
 
 Run the installation script to install the binary and default systemd service:
 
 ```bash
+wget https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/install.sh
+chmod +x install.sh
+mkdir -p assets/systemd/
+wget -O assets/systemd/add_service.sh https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/assets/systemd/add_service.sh
+chmod +x assets/systemd/add_service.sh
 sudo ./install.sh
 ```
 
@@ -53,17 +60,17 @@ Download and install the environment file with Kolla-specific paths:
 
 ```bash
 # For RHEL/CentOS
-sudo wget -O /etc/sysconfig/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.1/contrib/kolla-ansible/ovs-exporter.env
+sudo wget -O /etc/sysconfig/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/contrib/kolla-ansible/ovs-exporter.env
 
 # For Debian/Ubuntu
-sudo wget -O /etc/default/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.1/contrib/kolla-ansible/ovs-exporter.env
+sudo wget -O /etc/default/ovs-exporter https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/contrib/kolla-ansible/ovs-exporter.env
 ```
 
 Download and install systemd drop-in override for Kolla container dependencies:
 
 ```bash
 sudo mkdir -p /etc/systemd/system/ovs-exporter.service.d/
-sudo wget -O /etc/systemd/system/ovs-exporter.service.d/ovs-exporter-kolla.conf https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v2.4.1/contrib/kolla-ansible/ovs-exporter-kolla.conf
+sudo wget -O /etc/systemd/system/ovs-exporter.service.d/ovs-exporter-kolla.conf https://raw.githubusercontent.com/lucadelmonte/ovs_exporter/v$VERSION/contrib/kolla-ansible/ovs-exporter-kolla.conf
 ```
 
 ### 4. Start the Service
@@ -104,7 +111,7 @@ curl -s http://localhost:9475/metrics | wc -l
 
 ### Compute Nodes vs Network Nodes
 
-- **ovs-exporter** → Deploy on **compute nodes** (hypervisors running VMs)
+- **ovs-exporter** → Deploy on **compute nodes** and **network/controller nodes**
   - Monitors local OVS bridges, flows, and ovn-controller
   - Port: 9475
 
