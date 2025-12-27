@@ -1,0 +1,13 @@
+scrape_configs:
+  - job_name: ovs-exporter
+    static_configs:
+      - targets:
+{% for host in groups['openvswitch'] %}
+          - '{{ hostvars[host][('ansible_' + hostvars[host]['api_interface'] | replace('-','_'))]['ipv4']['address'] }}:9475'
+{% endfor %}
+  - job_name: ovn-exporter
+    static_configs:
+      - targets:
+{% for host in groups['ovn-database'] %}
+          - '{{ hostvars[host][('ansible_' + hostvars[host]['api_interface'] | replace('-','_'))]['ipv4']['address'] }}:9476'
+{% endfor %}

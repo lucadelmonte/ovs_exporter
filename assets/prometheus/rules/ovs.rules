@@ -1,0 +1,158 @@
+groups:
+
+- name: OVSExporter
+
+  rules:
+
+    # === AVAILABILITY ALERTS ===
+
+    - alert: OVSExporterDown
+      expr: up{job="ovs-exporter"} == 0
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS exporter down (system_id {{ $labels.system_id }})
+        description: "Failed to scrape OVS exporter on {{ $labels.system_id }} for more than 2 minutes."
+
+    - alert: OVSDown
+      expr: ovs_up == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: OVS is down (system_id {{ $labels.system_id }})
+        description: "Open vSwitch is not responding on {{ $labels.system_id }}. This affects network connectivity for VMs."
+
+    # === REQUEST ERRORS ===
+
+    - alert: OVSFailedRequestsIncreasing
+      expr: sum by(system_id) (rate(ovs_failed_requests_total[5m])) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS failed requests increasing (system_id {{ $labels.system_id }})
+        description: "OVS failed requests are increasing on {{ $labels.system_id }}.\n  VALUE = {{ $value }} requests/sec"
+
+    - alert: OVSHighFailedRequestRate
+      expr: sum by(system_id) (rate(ovs_failed_requests_total[5m])) > 1
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: OVS high failed request rate (system_id {{ $labels.system_id }})
+        description: "OVS is experiencing a high rate of failed requests on {{ $labels.system_id }}.\n  VALUE = {{ $value }} requests/sec"
+
+    # === INTERFACE ALERTS ===
+    - alert: OVSInterfaceReceiveErrors
+      expr: sum by(system_id,uuid) (rate(ovs_interface_rx_errors_total[5m])) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS interface receive errors (system_id {{ $labels.system_id }})
+        description: "Interface {{ $labels.uuid }} on {{ $labels.system_id }} is experiencing receive errors.\n  VALUE = {{ $value }} errors/sec"
+
+    - alert: OVSInterfaceTransmitErrors
+      expr: sum by(system_id,uuid) (rate(ovs_interface_tx_errors_total[5m])) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS interface transmit errors (system_id {{ $labels.system_id }})
+        description: "Interface {{ $labels.uuid }} on {{ $labels.system_id }} is experiencing transmit errors.\n  VALUE = {{ $value }} errors/sec"
+
+    - alert: OVSInterfaceHighDropRate
+      expr: (sum by(system_id,uuid) (rate(ovs_interface_rx_dropped_total[5m])) + sum by(system_id,uuid) (rate(ovs_interface_tx_dropped_total[5m]))) > 100
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS interface high drop rate (system_id {{ $labels.system_id }})
+        description: "Interface {{ $labels.uuid }} on {{ $labels.system_id }} is dropping packets.\n  VALUE = {{ $value }} drops/sec"
+
+    - alert: OVSInterfaceLinkFlapping
+      expr: sum by(system_id,uuid) (rate(ovs_interface_link_resets_total[5m])) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS interface link flapping (system_id {{ $labels.system_id }})
+        description: "Interface {{ $labels.uuid }} on {{ $labels.system_id }} is experiencing link flapping.\n  VALUE = {{ $value }} resets/sec"
+
+    - alert: OVSInterfaceCRCErrors
+      expr: sum by(system_id,uuid) (rate(ovs_interface_rx_crc_errors_total[5m])) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS interface CRC errors (system_id {{ $labels.system_id }})
+        description: "Interface {{ $labels.uuid }} on {{ $labels.system_id }} is experiencing CRC errors. Check cables and hardware.\n  VALUE = {{ $value }} errors/sec"
+
+    - alert: OVSInterfaceFrameErrors
+      expr: sum by(system_id,uuid) (rate(ovs_interface_rx_frame_errors_total[5m])) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS interface frame errors (system_id {{ $labels.system_id }})
+        description: "Interface {{ $labels.uuid }} on {{ $labels.system_id }} is experiencing frame alignment errors.\n  VALUE = {{ $value }} errors/sec"
+
+    - alert: OVSInterfaceOverruns
+      expr: sum by(system_id,uuid) (rate(ovs_interface_rx_overrun_errors_total[5m])) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS interface buffer overruns (system_id {{ $labels.system_id }})
+        description: "Interface {{ $labels.uuid }} on {{ $labels.system_id }} is experiencing buffer overruns. System may be overwhelmed.\n  VALUE = {{ $value }} overruns/sec"
+
+    # === DATAPATH ALERTS ===
+
+    - alert: OVSDatapathHighMissRatio
+      expr: sum by(system_id,datapath) (rate(ovs_dp_lookups_missed_total[5m])) / (sum by(system_id,datapath) (rate(ovs_dp_lookups_hit_total[5m])) + sum by(system_id,datapath) (rate(ovs_dp_lookups_missed_total[5m])) + 0.001) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS datapath high miss ratio (system_id {{ $labels.system_id }})
+        description: "OVS datapath {{ $labels.datapath }} on {{ $labels.system_id }} has a high lookup miss ratio (>10%).\n  VALUE = {{ $value | humanizePercentage }}"
+
+    - alert: OVSDatapathFlowsHigh
+      expr: max by(system_id,datapath) (ovs_dp_flows) > 100000
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS datapath flows high (system_id {{ $labels.system_id }})
+        description: "OVS datapath {{ $labels.datapath }} on {{ $labels.system_id }} has a high number of flows.\n  VALUE = {{ $value }}"
+
+    - alert: OVSDatapathPacketsLost
+      expr: sum by(system_id,datapath) (rate(ovs_dp_lookups_lost_total[5m])) > 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: OVS datapath packets lost (system_id {{ $labels.system_id }})
+        description: "OVS datapath {{ $labels.datapath }} on {{ $labels.system_id }} is losing packets to userspace.\n  VALUE = {{ $value }} packets/sec"
+
+    # === RESOURCE ALERTS ===
+
+    - alert: OVSHighMemoryUsage
+      expr: max by(system_id) (ovs_memory_usage_bytes) > 1073741824
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: OVS high memory usage (system_id {{ $labels.system_id }})
+        description: "OVS on {{ $labels.system_id }} is using more than 1GB of memory.\n  VALUE = {{ $value | humanize1024 }}"
+
+    - alert: OVSLogFileLarge
+      expr: ovs_log_file_size_bytes > 104857600
+      for: 30m
+      labels:
+        severity: info
+      annotations:
+        summary: OVS log file large (system_id {{ $labels.system_id }})
+        description: "OVS log file {{ $labels.component }} on {{ $labels.system_id }} is larger than 100MB.\n  VALUE = {{ $value | humanize1024 }}"
