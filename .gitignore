@@ -10,4 +10,4 @@ dist/
 TODO
 CLAUDE.md
 .vscode
-ovs_exporter
+/ovs_exporter

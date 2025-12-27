@@ -598,36 +598,30 @@ func NewExporter(opts Options) *Exporter {
 }
 
 func (e *Exporter) Connect() error {
-	// Try to get system ID from database first, then fallback to file
-	if err := e.GetSystemID(); err != nil {
-		// Log the error but continue - we'll use "unknown" as system ID
-		level.Warn(e.logger).Log(
-			"msg", "Failed to retrieve system ID, using 'unknown'",
-			"error", err,
-		)
-		// The client already has "unknown" as default, so we can continue
-	}
-
 	level.Debug(e.logger).Log(
-		"msg", "NewExporter() calls Connect()",
-		"system_id", e.Client.System.ID,
+		"msg", "Connect() establishing database connection",
 	)
 
 	if err := e.Client.Connect(); err != nil {
 		return err
 	}
 
+	// Try to get system ID from DB first, fallback to file (for older OVS versions)
+	// This is best-effort; GetSystemInfo will also retrieve it
+	e.Client.GetSystemID()
+
 	level.Debug(e.logger).Log(
-		"msg", "NewExporter() calls GetSystemInfo()",
+		"msg", "Connect() retrieving system info",
 		"system_id", e.Client.System.ID,
 	)
 
+	// GetSystemInfo retrieves full system info including system ID from database
 	if err := e.Client.GetSystemInfo(); err != nil {
 		return err
 	}
 
 	level.Debug(e.logger).Log(
-		"msg", "NewExporter() initialized successfully",
+		"msg", "Connect() initialized successfully",
 		"system_id", e.Client.System.ID,
 	)
 	return nil
