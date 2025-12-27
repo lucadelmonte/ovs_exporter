@@ -15,18 +15,117 @@
       }
     ]
   },
+  "description": "Detailed operational dashboard for Open vSwitch monitoring and troubleshooting",
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "id": null,
   "links": [],
   "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "System information for the selected OVS instance including hostname, version, and system details.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 32,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_info{system_id=~\"$system_id\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "OVS System Info",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "rundir": true
+            },
+            "indexByName": {
+              "hostname": 0,
+              "system_id": 1,
+              "ovs_version": 2,
+              "db_version": 3,
+              "system_type": 4,
+              "system_version": 5
+            },
+            "renameByName": {
+              "hostname": "Hostname",
+              "system_id": "System ID",
+              "ovs_version": "OVS Version",
+              "db_version": "DB Version",
+              "system_type": "System Type",
+              "system_version": "OS Version"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
     {
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 5
       },
       "id": 1,
       "title": "System Health",
@@ -37,6 +136,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Current status of the OVS stack. UP (green) means the exporter can successfully connect to OVS components. DOWN (red) indicates connection failures.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -79,7 +179,7 @@
         "h": 4,
         "w": 3,
         "x": 0,
-        "y": 1
+        "y": 6
       },
       "id": 2,
       "options": {
@@ -105,7 +205,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "ovs_up{system_id=\"$system_id\"}",
+          "expr": "max(ovs_info{system_id=~\"$system_id\"})",
           "legendFormat": "OVS",
           "range": true,
           "refId": "A"
@@ -119,6 +219,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Total number of OVS interfaces configured on this system. Includes physical ports, virtual ports, and internal ports.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -142,7 +243,7 @@
         "h": 4,
         "w": 3,
         "x": 3,
-        "y": 1
+        "y": 6
       },
       "id": 3,
       "options": {
@@ -168,7 +269,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "count(ovs_dp_interface{system_id=\"$system_id\"})",
+          "expr": "count(ovs_interface{system_id=~\"$system_id\"})",
           "legendFormat": "Interfaces",
           "range": true,
           "refId": "A"
@@ -182,6 +283,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Total number of flows installed in all datapaths. Higher flow counts indicate more network rules but may impact memory usage.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -205,7 +307,7 @@
         "h": 4,
         "w": 3,
         "x": 6,
-        "y": 1
+        "y": 6
       },
       "id": 4,
       "options": {
@@ -231,7 +333,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(ovs_dp_flows{system_id=\"$system_id\"})",
+          "expr": "sum(ovs_dp_flows{system_id=~\"$system_id\"})",
           "legendFormat": "Flows",
           "range": true,
           "refId": "A"
@@ -245,6 +347,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Total memory usage across all OVS components and facilities. This includes handlers, revalidators, and various internal data structures.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -257,18 +360,10 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 10
               }
             ]
           },
-          "unit": "short"
+          "unit": "decbytes"
         },
         "overrides": []
       },
@@ -276,7 +371,7 @@
         "h": 4,
         "w": 3,
         "x": 9,
-        "y": 1
+        "y": 6
       },
       "id": 5,
       "options": {
@@ -302,13 +397,13 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(ovs_failed_requests_total{system_id=\"$system_id\"}[5m])",
-          "legendFormat": "Failed Requests",
+          "expr": "sum(ovs_memory_usage_bytes{system_id=~\"$system_id\"})",
+          "legendFormat": "Total Memory",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Failed Request Rate",
+      "title": "Total Memory Usage",
       "type": "stat"
     },
     {
@@ -316,6 +411,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Rate of datapath flow lookups. Hits indicate packets matching existing flows. Misses require upcalls to userspace for flow installation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -363,7 +459,7 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -371,19 +467,19 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 1
+        "y": 6
       },
       "id": 6,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
       "targets": [
@@ -393,13 +489,24 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "ovs_memory_usage_bytes{system_id=\"$system_id\"}",
-          "legendFormat": "{{component}} - {{facility}}",
+          "expr": "rate(ovs_dp_lookups_hit_total{system_id=~\"$system_id\"}[5m])",
+          "legendFormat": "{{datapath}} hits",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_dp_lookups_missed_total{system_id=~\"$system_id\"}[5m])",
+          "legendFormat": "{{datapath}} missed",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "Memory Usage",
+      "title": "Datapath Lookup Rate",
       "type": "timeseries"
     },
     {
@@ -407,6 +514,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Number of flows installed in each datapath. Flows are installed when packets don't match existing rules and require a new flow entry.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -454,7 +562,7 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -462,7 +570,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 5
+        "y": 10
       },
       "id": 7,
       "options": {
@@ -484,13 +592,13 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "ovs_log_file_size_bytes{system_id=\"$system_id\"}",
-          "legendFormat": "{{component}} - {{filename}}",
+          "expr": "ovs_dp_flows{system_id=~\"$system_id\"}",
+          "legendFormat": "{{datapath}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Log File Sizes",
+      "title": "Datapath Flows",
       "type": "timeseries"
     },
     {
@@ -499,11 +607,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 14
       },
       "id": 8,
       "panels": [],
-      "title": "PMD Performance",
+      "title": "Interface Traffic",
       "type": "row"
     },
     {
@@ -511,426 +619,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 10
-      },
-      "id": 9,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "lastNotNull"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "ovs_pmd_cpu_utilization_ratio{system_id=\"$system_id\"} * 100",
-          "legendFormat": "PMD {{pmd_id}} (Core {{core_id}})",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "PMD CPU Utilization",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 10
-      },
-      "id": 10,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "lastNotNull"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "ovs_pmd_cycles_per_packet{system_id=\"$system_id\"}",
-          "legendFormat": "PMD {{pmd_id}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Cycles per Packet",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "pps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 18
-      },
-      "id": 11,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "max"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_pmd_rx_packets_total{system_id=\"$system_id\"}[5m])",
-          "legendFormat": "RX PMD {{pmd_id}}",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_pmd_tx_packets_total{system_id=\"$system_id\"}[5m])",
-          "legendFormat": "TX PMD {{pmd_id}}",
-          "range": true,
-          "refId": "B"
-        }
-      ],
-      "title": "PMD Packet Rate",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "stack"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 18
-      },
-      "id": 12,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_pmd_exact_match_hit_total{system_id=\"$system_id\"}[5m])",
-          "legendFormat": "Exact Match Hits PMD {{pmd_id}}",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_pmd_masked_hit_total{system_id=\"$system_id\"}[5m])",
-          "legendFormat": "Masked Hits PMD {{pmd_id}}",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_pmd_miss_total{system_id=\"$system_id\"}[5m])",
-          "legendFormat": "Misses PMD {{pmd_id}}",
-          "range": true,
-          "refId": "C"
-        }
-      ],
-      "title": "PMD Flow Lookups",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 26
-      },
-      "id": 13,
-      "panels": [],
-      "title": "Interface Metrics",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
+      "description": "Top 10 interfaces by receive bandwidth. Shows the rate of bytes received per second on each interface.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -986,9 +675,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 15
       },
-      "id": 14,
+      "id": 9,
       "options": {
         "legend": {
           "calcs": ["mean", "max"],
@@ -1008,24 +697,13 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(ovs_interface_rx_bytes{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "RX {{name}}",
+          "expr": "topk(10, rate(ovs_interface_rx_bytes{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} RX",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_interface_tx_bytes{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "TX {{name}}",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Interface Bandwidth",
+      "title": "Top 10 Interface RX Bandwidth",
       "type": "timeseries"
     },
     {
@@ -1033,6 +711,191 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Top 10 interfaces by transmit bandwidth. Shows the rate of bytes transmitted per second on each interface.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "binBps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, rate(ovs_interface_tx_bytes{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} TX",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 Interface TX Bandwidth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Top 10 interfaces by receive packet rate. Higher rates indicate busier interfaces.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "pps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, rate(ovs_interface_rx_packets_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} RX",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 Interface RX Packet Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Top 10 interfaces by transmit packet rate. Higher rates indicate busier interfaces.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1088,9 +951,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 23
       },
-      "id": 15,
+      "id": 12,
       "options": {
         "legend": {
           "calcs": ["mean", "max"],
@@ -1110,155 +973,34 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(ovs_interface_rx_packets_total{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "RX {{name}}",
+          "expr": "topk(10, rate(ovs_interface_tx_packets_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} TX",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_interface_tx_packets_total{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "TX {{name}}",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Interface Packet Rate",
+      "title": "Top 10 Interface TX Packet Rate",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "stack"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
+      "collapsed": false,
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 1,
+        "w": 24,
         "x": 0,
-        "y": 35
+        "y": 31
       },
-      "id": 16,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_interface_rx_errors_total{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "RX Errors {{name}}",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_interface_tx_errors_total{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "TX Errors {{name}}",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_interface_rx_dropped_total{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "RX Dropped {{name}}",
-          "range": true,
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "rate(ovs_interface_tx_dropped_total{system_id=\"$system_id\", uuid=\"$interface\"}[5m])",
-          "legendFormat": "TX Dropped {{name}}",
-          "range": true,
-          "refId": "D"
-        }
-      ],
-      "title": "Interface Errors & Drops",
-      "type": "timeseries"
+      "id": 13,
+      "panels": [],
+      "title": "Interface Health",
+      "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Rate of interface errors per second. High error rates may indicate hardware issues, MTU mismatches, or driver problems.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1293,12 +1035,10 @@
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "line"
             }
           },
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1308,15 +1048,126 @@
               },
               {
                 "color": "yellow",
-                "value": 50
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 10
               }
             ]
           },
-          "unit": "percent"
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "sum"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_interface_rx_errors_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} RX errors",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_interface_tx_errors_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} TX errors",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Interface Errors Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Rate of dropped packets per second. Drops may indicate buffer overflows, congestion, or policy-based filtering.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
         },
         "overrides": []
       },
@@ -1324,12 +1175,12 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 35
+        "y": 32
       },
-      "id": 17,
+      "id": 15,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": ["mean", "sum"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -1346,8 +1197,8 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(rate(ovs_interface_rx_bytes{system_id=\"$system_id\", uuid=\"$interface\"}[5m]) * 8 / ovs_interface_link_speed_bits_per_second{system_id=\"$system_id\", uuid=\"$interface\"}) * 100",
-          "legendFormat": "RX Utilization {{name}}",
+          "expr": "rate(ovs_interface_rx_dropped_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} RX drops",
           "range": true,
           "refId": "A"
         },
@@ -1357,13 +1208,13 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(rate(ovs_interface_tx_bytes{system_id=\"$system_id\", uuid=\"$interface\"}[5m]) * 8 / ovs_interface_link_speed_bits_per_second{system_id=\"$system_id\", uuid=\"$interface\"}) * 100",
-          "legendFormat": "TX Utilization {{name}}",
+          "expr": "rate(ovs_interface_tx_dropped_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} TX drops",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "Interface Utilization",
+      "title": "Interface Drops Rate",
       "type": "timeseries"
     },
     {
@@ -1372,18 +1223,111 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 40
+      },
+      "id": 17,
+      "panels": [],
+      "title": "Bridge & Datapath Details",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Number of interfaces attached to each bridge. Shows the size and complexity of each bridge configuration.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 41
       },
       "id": 18,
-      "panels": [],
-      "title": "Flow Cache Performance",
-      "type": "row"
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_dp_bridge_interfaces{system_id=~\"$system_id\"}",
+          "legendFormat": "{{bridge}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Interfaces per Bridge",
+      "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Average number of masks visited per packet lookup. This is NOT a percentage - it's the average masks checked per packet. Lower values (1-3) are optimal. Very high values may indicate flow table fragmentation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1393,7 +1337,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "Masks per packet",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -1416,322 +1360,6 @@
             "stacking": {
               "group": "A",
               "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "green",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 44
-      },
-      "id": 19,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "lastNotNull"],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "ovs_flow_cache_emc_hit_ratio{system_id=\"$system_id\"} * 100",
-          "legendFormat": "EMC Hit Ratio PMD {{pmd_id}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "EMC Hit Ratio",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 70
-              },
-              {
-                "color": "green",
-                "value": 85
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 44
-      },
-      "id": 20,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "lastNotNull"],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "ovs_flow_cache_smc_hit_ratio{system_id=\"$system_id\"} * 100",
-          "legendFormat": "SMC Hit Ratio PMD {{pmd_id}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "SMC Hit Ratio",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 85
-              },
-              {
-                "color": "green",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 44
-      },
-      "id": 21,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "lastNotNull"],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "ovs_flow_cache_megaflow_hit_ratio{system_id=\"$system_id\"} * 100",
-          "legendFormat": "Megaflow Hit Ratio PMD {{pmd_id}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Megaflow Hit Ratio",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 52
-      },
-      "id": 22,
-      "panels": [],
-      "title": "Drop Analysis",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "stack"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -1753,16 +1381,16 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 53
+        "w": 12,
+        "x": 12,
+        "y": 41
       },
-      "id": 23,
+      "id": 19,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": ["mean", "lastNotNull"],
           "displayMode": "table",
-          "placement": "right",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -1777,13 +1405,529 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(ovs_datapath_drops_total{system_id=\"$system_id\"}[5m])",
-          "legendFormat": "{{drop_reason}}",
+          "expr": "ovs_dp_masks_hit_ratio{system_id=~\"$system_id\"}",
+          "legendFormat": "{{datapath}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Drop Rate by Reason",
+      "title": "Datapath Mask Hit Ratio (masks/packet)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Detailed information about each datapath interface including bridge assignment, OpenFlow port number, and port type.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Bridge"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Interface Name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "id": 20,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Bridge"
+          }
+        ]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_dp_interface{system_id=~\"$system_id\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Datapath Interface Details",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "datapath": true,
+              "index": true,
+              "job": true,
+              "instance": true,
+              "system_id": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "bridge": "Bridge",
+              "name": "Interface Name",
+              "ofport": "OpenFlow Port",
+              "port_type": "Port Type"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      },
+      "id": 21,
+      "panels": [],
+      "title": "System Resources",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Memory usage by OVS component and facility. Components include ovs-vswitchd and ovsdb-server. Facilities include handlers, revalidators, and various caches.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 60
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_memory_usage_bytes{system_id=~\"$system_id\"}",
+          "legendFormat": "{{component}} - {{facility}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Usage by Component & Facility",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Size of log files for each OVS component. Monitor for unexpected growth which may indicate excessive logging or issues.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 60
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_log_file_size_bytes{system_id=~\"$system_id\"}",
+          "legendFormat": "{{component}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Log File Sizes",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 68
+      },
+      "id": 24,
+      "panels": [],
+      "title": "Coverage Statistics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Rate of flow-related operations. Includes flow modifications, flushes, and datapath flow operations. High rates may indicate configuration churn.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 69
+      },
+      "id": 25,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_coverage_total{system_id=~\"$system_id\"}[5m]) > 0",
+          "legendFormat": "{{component}} - {{event}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Coverage Events Rate (showing active events only)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "5-minute average of various OVS events from coverage statistics. These show internal OVS activity like upcalls, revalidations, and bridge operations.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 69
+      },
+      "id": 30,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_coverage_avg{system_id=~\"$system_id\", interval=\"5m\"} > 0",
+          "legendFormat": "{{component}} - {{event}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Coverage 5min Averages (showing active events only)",
       "type": "timeseries"
     }
   ],
@@ -1812,60 +1956,32 @@
         "type": "datasource"
       },
       {
+        "allValue": ".*",
         "current": {
-          "selected": false,
-          "text": "",
-          "value": ""
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(ovs_up, system_id)",
+        "definition": "label_values(ovs_info, system_id)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "System ID",
-        "multi": false,
+        "multi": true,
         "name": "system_id",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(ovs_up, system_id)",
+          "query": "label_values(ovs_info, system_id)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "allValue": ".*",
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${datasource}"
-        },
-        "definition": "label_values(ovs_interface{system_id=\"$system_id\"}, uuid)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Interface",
-        "multi": false,
-        "name": "interface",
-        "options": [],
-        "query": {
-          "qryType": 1,
-          "query": "label_values(ovs_interface{system_id=\"$system_id\"}, uuid)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
-        },
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
+        "sort": 1,
         "type": "query"
       }
     ]

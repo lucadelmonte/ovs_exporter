@@ -22,14 +22,105 @@
   "links": [],
   "panels": [
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "System information for the selected OVS instance including hostname, version, and system details.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 1,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 0
       },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_info{system_id=~\"$system_id\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "OVS System Info",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "rundir": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "db_version": "DB Version",
+              "hostname": "Hostname",
+              "ovs_version": "OVS Version",
+              "system_id": "System ID",
+              "system_type": "System Type",
+              "system_version": "OS Version"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
       "id": 1,
-      "title": "Service Level Overview",
+      "title": "System Overview",
       "type": "row"
     },
     {
@@ -77,10 +168,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
+        "h": 4,
+        "w": 4,
         "x": 0,
-        "y": 1
+        "y": 6
       },
       "id": 2,
       "options": {
@@ -106,12 +197,13 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "ovs_up{system_id=\"$system_id\"}",
+          "expr": "max(ovs_info{system_id=~\"$system_id\"})",
           "legendFormat": "OVS Status",
           "range": true,
           "refId": "A"
         }
       ],
+      "description": "Current status of the OVS stack. UP (green) means the exporter can successfully connect to OVS components. DOWN (red) indicates connection failures.",
       "title": "System Status",
       "type": "stat"
     },
@@ -125,49 +217,41 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 99
-              },
-              {
-                "color": "red",
-                "value": 95
               }
             ]
           },
-          "unit": "percent"
+          "unit": "none"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 6,
-        "y": 1
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 6
       },
       "id": 3,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "11.0.0",
       "targets": [
@@ -177,14 +261,242 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(1 - (rate(ovs_failed_requests_total{system_id=\"$system_id\"}[5m]) / rate(ovs_requests_total{system_id=\"$system_id\"}[5m]))) * 100",
-          "legendFormat": "Success Rate",
+          "expr": "sum(ovs_dp_flows{system_id=~\"$system_id\"})",
+          "legendFormat": "Total Flows",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Service Success Rate (5m)",
-      "type": "gauge"
+      "description": "Total number of flows installed in all datapaths. Higher flow counts indicate more network rules but may impact memory usage.",
+      "title": "Total Datapath Flows",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 6
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "count(ovs_interface{system_id=~\"$system_id\"})",
+          "legendFormat": "Interfaces",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "description": "Total number of OVS interfaces configured on this system. Includes physical ports, virtual ports, and internal ports.",
+      "title": "Total Interfaces",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 12,
+        "y": 6
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_failed_requests_total{system_id=~\"$system_id\"}",
+          "legendFormat": "Failed Requests",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "description": "Total number of failed requests to OVS components. Non-zero values indicate connection or communication issues with OVS.",
+      "title": "Failed Requests Total",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 60,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_info{system_id=~\"$system_id\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "description": "System information for the selected OVS instance including hostname, version, and system details.",
+      "title": "OVS System Info",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "job": true,
+              "instance": true,
+              "rundir": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "db_version": "DB Version",
+              "hostname": "Hostname",
+              "ovs_version": "OVS Version",
+              "system_id": "System ID",
+              "system_type": "System Type",
+              "system_version": "OS Version"
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": {
@@ -238,17 +550,17 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "none"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 1
+        "x": 0,
+        "y": 13
       },
-      "id": 4,
+      "id": 7,
       "options": {
         "legend": {
           "calcs": [],
@@ -257,7 +569,7 @@
           "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
@@ -268,13 +580,117 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "avg(ovs_pmd_cpu_utilization_ratio{system_id=\"$system_id\"}) * 100",
-          "legendFormat": "Average CPU Utilization",
+          "expr": "ovs_dp_flows{system_id=~\"$system_id\"}",
+          "legendFormat": "{{datapath}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "CPU Utilization Trend",
+      "description": "Number of flows installed in each datapath over time. Flows are installed when packets don't match existing rules.",
+      "title": "Datapath Flows",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_dp_lookups_hit_total{system_id=~\"$system_id\"}[5m])",
+          "legendFormat": "Hits - {{datapath}}",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_dp_lookups_missed_total{system_id=~\"$system_id\"}[5m])",
+          "legendFormat": "Misses - {{datapath}}",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "description": "Rate of datapath flow lookups. Hits indicate packets matching existing flows. Misses require upcalls to userspace for flow installation.",
+      "title": "Datapath Lookup Rate",
       "type": "timeseries"
     },
     {
@@ -283,11 +699,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 21
       },
-      "id": 5,
+      "id": 9,
       "panels": [],
-      "title": "Per-Tenant Performance Metrics",
+      "title": "Interface Traffic",
       "type": "row"
     },
     {
@@ -342,7 +758,7 @@
               }
             ]
           },
-          "unit": "pps"
+          "unit": "binBps"
         },
         "overrides": []
       },
@@ -350,12 +766,12 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 22
       },
-      "id": 6,
+      "id": 10,
       "options": {
         "legend": {
-          "calcs": ["mean", "lastNotNull"],
+          "calcs": ["mean", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -372,13 +788,14 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum by (value) (\n  rate(ovs_interface_rx_packets_total{system_id=\"$system_id\"}[5m]) * on(uuid) group_left(value) \n  ovs_interface_external_ids{key=\"tenant_id\"}\n)",
-          "legendFormat": "Tenant: {{value}}",
+          "expr": "topk(10, rate(ovs_interface_rx_bytes{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} RX",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Packet Rate by Tenant (RX)",
+      "description": "Top 10 interfaces by receive bandwidth. Shows the rate of bytes received per second on each interface.",
+      "title": "Top 10 Interface RX Bandwidth",
       "type": "timeseries"
     },
     {
@@ -441,12 +858,12 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 22
       },
-      "id": 7,
+      "id": 11,
       "options": {
         "legend": {
-          "calcs": ["mean", "lastNotNull"],
+          "calcs": ["mean", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -463,384 +880,15 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum by (value) (\n  rate(ovs_interface_rx_bytes{system_id=\"$system_id\"}[5m]) * on(uuid) group_left(value) \n  ovs_interface_external_ids{key=\"tenant_id\"}\n)",
-          "legendFormat": "Tenant: {{value}}",
+          "expr": "topk(10, rate(ovs_interface_tx_bytes{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} TX",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Bandwidth by Tenant (RX)",
+      "description": "Top 10 interfaces by transmit bandwidth. Shows the rate of bytes transmitted per second on each interface.",
+      "title": "Top 10 Interface TX Bandwidth",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.001
-              },
-              {
-                "color": "red",
-                "value": 0.01
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Tenant ID"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 200
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Total Packets"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.width",
-                "value": 150
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Drop Rate"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Error Rate"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      },
-      "id": 8,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "Total Packets"
-          }
-        ]
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (value) (\n  ovs_interface_external_ids{key=\"tenant_id\", system_id=\"$system_id\"}\n)",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "TenantID"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (value) (\n  increase(ovs_interface_rx_packets_total{system_id=\"$system_id\"}[5m]) * on(uuid) group_left(value) \n  ovs_interface_external_ids{key=\"tenant_id\"}\n)",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "TotalPackets"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (value) (\n  rate(ovs_interface_rx_dropped_total{system_id=\"$system_id\"}[5m]) * on(uuid) group_left(value) \n  ovs_interface_external_ids{key=\"tenant_id\"}\n) / sum by (value) (\n  rate(ovs_interface_rx_packets_total{system_id=\"$system_id\"}[5m]) * on(uuid) group_left(value) \n  ovs_interface_external_ids{key=\"tenant_id\"}\n)",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "DropRate"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (value) (\n  rate(ovs_interface_rx_errors_total{system_id=\"$system_id\"}[5m]) * on(uuid) group_left(value) \n  ovs_interface_external_ids{key=\"tenant_id\"}\n) / sum by (value) (\n  rate(ovs_interface_rx_packets_total{system_id=\"$system_id\"}[5m]) * on(uuid) group_left(value) \n  ovs_interface_external_ids{key=\"tenant_id\"}\n)",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "ErrorRate"
-        }
-      ],
-      "title": "Tenant Performance Summary",
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true
-            },
-            "indexByName": {},
-            "renameByName": {
-              "value": "Tenant ID",
-              "Value #TotalPackets": "Total Packets",
-              "Value #DropRate": "Drop Rate",
-              "Value #ErrorRate": "Error Rate"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 9,
-      "panels": [],
-      "title": "SLA/SLO Indicators",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 90
-              },
-              {
-                "color": "green",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 25
-      },
-      "id": 10,
-      "options": {
-        "orientation": "auto",
-        "displayMode": "lcd",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "namePlacement": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "(1 - avg(ovs_flow_cache_megaflow_misses_total{system_id=\"$system_id\"} / (ovs_flow_cache_megaflow_hits_total{system_id=\"$system_id\"} + ovs_flow_cache_megaflow_misses_total{system_id=\"$system_id\"}))) * 100",
-          "legendFormat": "Flow Cache Hit Rate",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "avg(ovs_flow_cache_emc_hit_ratio{system_id=\"$system_id\"}) * 100",
-          "legendFormat": "EMC Hit Rate",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "avg(ovs_flow_cache_smc_hit_ratio{system_id=\"$system_id\"}) * 100",
-          "legendFormat": "SMC Hit Rate",
-          "range": true,
-          "refId": "C"
-        }
-      ],
-      "title": "Cache Performance SLI",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 6,
-        "y": 25
-      },
-      "id": 11,
-      "options": {
-        "displayLabels": ["percent"],
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["value"]
-        },
-        "pieType": "donut",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (drop_reason) (increase(ovs_datapath_drops_total{system_id=\"$system_id\"}[5m]))",
-          "legendFormat": "{{drop_reason}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Drop Reasons (5m)",
-      "type": "piechart"
     },
     {
       "datasource": {
@@ -894,15 +942,15 @@
               }
             ]
           },
-          "unit": "ns"
+          "unit": "pps"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 25
+        "x": 0,
+        "y": 30
       },
       "id": 12,
       "options": {
@@ -924,8 +972,213 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(ovs_pmd_cycles_per_packet{system_id=\"$system_id\"}[5m])) by (le))",
-          "legendFormat": "P95 Latency",
+          "expr": "topk(10, rate(ovs_interface_rx_packets_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} RX",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "description": "Top 10 interfaces by receive packet rate. Higher rates indicate busier interfaces.",
+      "title": "Top 10 Interface RX Packet Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "pps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, rate(ovs_interface_tx_packets_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"})))",
+          "legendFormat": "{{value}} TX",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "description": "Top 10 interfaces by transmit packet rate. Higher rates indicate busier interfaces.",
+      "title": "Top 10 Interface TX Packet Rate",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "id": 14,
+      "panels": [],
+      "title": "SLA Indicators - Errors & Drops",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 39
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_interface_rx_errors_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} RX errors",
           "range": true,
           "refId": "A"
         },
@@ -935,10 +1188,110 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum(rate(ovs_pmd_cycles_per_packet{system_id=\"$system_id\"}[5m])) by (le))",
-          "legendFormat": "P99 Latency",
+          "expr": "rate(ovs_interface_tx_errors_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} TX errors",
           "range": true,
           "refId": "B"
+        }
+      ],
+      "description": "Rate of interface errors per second. High error rates may indicate hardware issues, MTU mismatches, or driver problems.",
+      "title": "Interface Errors Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 39
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_interface_rx_dropped_total{system_id=~\"$system_id\"}[5m]) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} RX drops",
+          "range": true,
+          "refId": "A"
         },
         {
           "datasource": {
@@ -946,13 +1299,209 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "avg(ovs_pmd_cycles_per_packet{system_id=\"$system_id\"})",
-          "legendFormat": "Average Latency",
+          "expr": "(rate(ovs_interface_tx_dropped_total{system_id=~\"$system_id\"}[5m]) > 0) * on(uuid, system_id) group_left(value) (max by (uuid, system_id, value) (ovs_interface_external_ids{system_id=~\"$system_id\", key=\"iface-id\"}))",
+          "legendFormat": "{{value}} TX drops",
           "range": true,
-          "refId": "C"
+          "refId": "B"
         }
       ],
-      "title": "Packet Processing Latency SLI",
+      "description": "Rate of dropped packets per second. Drops may indicate buffer overflows, congestion, or policy-based filtering.",
+      "title": "Interface Drops Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "id": 17,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_dp_masks_hit_ratio{system_id=~\"$system_id\"}",
+          "legendFormat": "{{datapath}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "description": "Average number of masks visited per packet lookup. This is NOT a percentage - it's the average masks checked per packet. Lower values (1-3) are optimal.",
+      "title": "Datapath Mask Hit Ratio (masks/packet)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "id": 18,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_dp_lookups_lost_total{system_id=~\"$system_id\"}[5m])",
+          "legendFormat": "Lost - {{datapath}}",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_dp_lookups_missed_total{system_id=~\"$system_id\"}[5m])",
+          "legendFormat": "Missed - {{datapath}}",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "description": "Rate of lost and missed datapath lookups. Lost packets indicate kernel buffer overflows. Missed lookups require userspace processing.",
+      "title": "Datapath Lookups Lost/Missed Rate",
       "type": "timeseries"
     }
   ],
@@ -981,31 +1530,32 @@
         "type": "datasource"
       },
       {
+        "allValue": ".*",
         "current": {
-          "selected": false,
-          "text": "",
-          "value": ""
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(ovs_up, system_id)",
+        "definition": "label_values(ovs_info, system_id)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "System ID",
-        "multi": false,
+        "multi": true,
         "name": "system_id",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(ovs_up, system_id)",
+          "query": "label_values(ovs_info, system_id)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 1,
         "type": "query"
       }
     ]
