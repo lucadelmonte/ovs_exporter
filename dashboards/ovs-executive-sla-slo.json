@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -37,6 +37,9 @@
             "cellOptions": {
               "type": "auto"
             },
+            "footer": {
+              "reducers": []
+            },
             "inspect": false
           },
           "mappings": [],
@@ -45,7 +48,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           }
@@ -61,15 +64,9 @@
       "id": 6,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
         "showHeader": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -94,8 +91,8 @@
               "Time": true,
               "Value": true,
               "__name__": true,
-              "job": true,
               "instance": true,
+              "job": true,
               "rundir": true
             },
             "indexByName": {},
@@ -113,6 +110,7 @@
       "type": "table"
     },
     {
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -120,6 +118,7 @@
         "y": 5
       },
       "id": 1,
+      "panels": [],
       "title": "System Overview",
       "type": "row"
     },
@@ -128,6 +127,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Current status of the OVS stack. UP (green) means the exporter can successfully connect to OVS components. DOWN (red) indicates connection failures.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -155,7 +155,7 @@
             "steps": [
               {
                 "color": "red",
-                "value": null
+                "value": 0
               },
               {
                 "color": "green",
@@ -169,7 +169,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 24,
         "x": 0,
         "y": 6
       },
@@ -179,8 +179,11 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -189,7 +192,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -203,7 +206,6 @@
           "refId": "A"
         }
       ],
-      "description": "Current status of the OVS stack. UP (green) means the exporter can successfully connect to OVS components. DOWN (red) indicates connection failures.",
       "title": "System Status",
       "type": "stat"
     },
@@ -212,6 +214,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Total number of failed requests to OVS components. Non-zero values indicate connection or communication issues with OVS.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -223,135 +226,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 6
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum(ovs_dp_flows{system_id=~\"$system_id\"})",
-          "legendFormat": "Total Flows",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "description": "Total number of flows installed in all datapaths. Higher flow counts indicate more network rules but may impact memory usage.",
-      "title": "Total Datapath Flows",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 8,
-        "y": 6
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "count(ovs_interface{system_id=~\"$system_id\"})",
-          "legendFormat": "Interfaces",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "description": "Total number of OVS interfaces configured on this system. Includes physical ports, virtual ports, and internal ports.",
-      "title": "Total Interfaces",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -368,10 +243,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 12,
-        "y": 6
+        "h": 10,
+        "w": 19,
+        "x": 0,
+        "y": 10
       },
       "id": 5,
       "options": {
@@ -379,8 +254,11 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -389,7 +267,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -397,13 +275,12 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "ovs_failed_requests_total{system_id=~\"$system_id\"}",
-          "legendFormat": "Failed Requests",
+          "expr": "label_replace(ovs_failed_requests_total{system_id=~\"$system_id\"}, \"host\", \"$1\", \"system_id\", \"([^.]+).*\")",
+          "legendFormat": "{{host}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "description": "Total number of failed requests to OVS components. Non-zero values indicate connection or communication issues with OVS.",
       "title": "Failed Requests Total",
       "type": "stat"
     },
@@ -412,6 +289,141 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Total number of OVS interfaces configured on this system. Includes physical ports, virtual ports, and internal ports.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 19,
+        "y": 10
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "count(ovs_interface{system_id=~\"$system_id\"})",
+          "legendFormat": "Interfaces",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Interfaces",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Total number of flows installed in all datapaths. Higher flow counts indicate more network rules but may impact memory usage.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 19,
+        "y": 14
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(ovs_dp_flows{system_id=~\"$system_id\"})",
+          "legendFormat": "Total Flows",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Datapath Flows",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "System information for the selected OVS instance including hostname, version, and system details.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -422,6 +434,9 @@
             "cellOptions": {
               "type": "auto"
             },
+            "footer": {
+              "reducers": []
+            },
             "inspect": false
           },
           "mappings": [],
@@ -430,7 +445,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           }
@@ -441,20 +456,14 @@
         "h": 4,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 20
       },
       "id": 60,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
         "showHeader": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -470,7 +479,6 @@
           "refId": "A"
         }
       ],
-      "description": "System information for the selected OVS instance including hostname, version, and system details.",
       "title": "OVS System Info",
       "transformations": [
         {
@@ -480,8 +488,8 @@
               "Time": true,
               "Value": true,
               "__name__": true,
-              "job": true,
               "instance": true,
+              "job": true,
               "rundir": true
             },
             "indexByName": {},
@@ -503,6 +511,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Number of flows installed in each datapath over time. Flows are installed when packets don't match existing rules.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -515,13 +524,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -531,6 +541,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -546,7 +557,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -558,7 +569,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 24
       },
       "id": 7,
       "options": {
@@ -569,10 +580,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -586,7 +599,6 @@
           "refId": "A"
         }
       ],
-      "description": "Number of flows installed in each datapath over time. Flows are installed when packets don't match existing rules.",
       "title": "Datapath Flows",
       "type": "timeseries"
     },
@@ -595,6 +607,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Rate of datapath flow lookups. Hits indicate packets matching existing flows. Misses require upcalls to userspace for flow installation.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -607,13 +620,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -623,6 +637,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -638,7 +653,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -650,21 +665,26 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 13
+        "y": 24
       },
       "id": 8,
       "options": {
         "legend": {
-          "calcs": ["mean", "lastNotNull"],
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -689,7 +709,6 @@
           "refId": "B"
         }
       ],
-      "description": "Rate of datapath flow lookups. Hits indicate packets matching existing flows. Misses require upcalls to userspace for flow installation.",
       "title": "Datapath Lookup Rate",
       "type": "timeseries"
     },
@@ -699,7 +718,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 32
       },
       "id": 9,
       "panels": [],
@@ -711,6 +730,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Top 10 interfaces by receive bandwidth. Shows the rate of bytes received per second on each interface.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -723,13 +743,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -739,6 +760,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -754,7 +776,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -766,21 +788,26 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 33
       },
       "id": 10,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -794,7 +821,6 @@
           "refId": "A"
         }
       ],
-      "description": "Top 10 interfaces by receive bandwidth. Shows the rate of bytes received per second on each interface.",
       "title": "Top 10 Interface RX Bandwidth",
       "type": "timeseries"
     },
@@ -803,6 +829,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Top 10 interfaces by transmit bandwidth. Shows the rate of bytes transmitted per second on each interface.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -815,13 +842,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -831,6 +859,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -846,7 +875,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -858,21 +887,26 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 33
       },
       "id": 11,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -886,7 +920,6 @@
           "refId": "A"
         }
       ],
-      "description": "Top 10 interfaces by transmit bandwidth. Shows the rate of bytes transmitted per second on each interface.",
       "title": "Top 10 Interface TX Bandwidth",
       "type": "timeseries"
     },
@@ -895,6 +928,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Top 10 interfaces by receive packet rate. Higher rates indicate busier interfaces.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -907,13 +941,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -923,6 +958,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -938,7 +974,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -950,21 +986,26 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 30
+        "y": 41
       },
       "id": 12,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -978,7 +1019,6 @@
           "refId": "A"
         }
       ],
-      "description": "Top 10 interfaces by receive packet rate. Higher rates indicate busier interfaces.",
       "title": "Top 10 Interface RX Packet Rate",
       "type": "timeseries"
     },
@@ -987,6 +1027,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Top 10 interfaces by transmit packet rate. Higher rates indicate busier interfaces.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -999,13 +1040,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -1015,6 +1057,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1030,7 +1073,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -1042,21 +1085,26 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 30
+        "y": 41
       },
       "id": 13,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1070,7 +1118,6 @@
           "refId": "A"
         }
       ],
-      "description": "Top 10 interfaces by transmit packet rate. Higher rates indicate busier interfaces.",
       "title": "Top 10 Interface TX Packet Rate",
       "type": "timeseries"
     },
@@ -1080,7 +1127,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 49
       },
       "id": 14,
       "panels": [],
@@ -1092,6 +1139,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Rate of interface errors per second. High error rates may indicate hardware issues, MTU mismatches, or driver problems.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1104,13 +1152,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -1120,6 +1169,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1135,7 +1185,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -1155,21 +1205,25 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 39
+        "y": 50
       },
       "id": 15,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1194,7 +1248,6 @@
           "refId": "B"
         }
       ],
-      "description": "Rate of interface errors per second. High error rates may indicate hardware issues, MTU mismatches, or driver problems.",
       "title": "Interface Errors Rate",
       "type": "timeseries"
     },
@@ -1203,6 +1256,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Rate of dropped packets per second. Drops may indicate buffer overflows, congestion, or policy-based filtering.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1215,13 +1269,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -1231,6 +1286,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1246,7 +1302,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -1266,21 +1322,25 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 39
+        "y": 50
       },
       "id": 16,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1305,7 +1365,6 @@
           "refId": "B"
         }
       ],
-      "description": "Rate of dropped packets per second. Drops may indicate buffer overflows, congestion, or policy-based filtering.",
       "title": "Interface Drops Rate",
       "type": "timeseries"
     },
@@ -1314,6 +1373,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Average number of masks visited per packet lookup. This is NOT a percentage - it's the average masks checked per packet. Lower values (1-3) are optimal.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1326,13 +1386,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -1342,6 +1403,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1357,7 +1419,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -1369,21 +1431,25 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 58
       },
       "id": 17,
       "options": {
         "legend": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1397,7 +1463,6 @@
           "refId": "A"
         }
       ],
-      "description": "Average number of masks visited per packet lookup. This is NOT a percentage - it's the average masks checked per packet. Lower values (1-3) are optimal.",
       "title": "Datapath Mask Hit Ratio (masks/packet)",
       "type": "timeseries"
     },
@@ -1406,6 +1471,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
+      "description": "Rate of lost and missed datapath lookups. Lost packets indicate kernel buffer overflows. Missed lookups require userspace processing.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1418,13 +1484,14 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -1434,6 +1501,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1449,7 +1517,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -1461,21 +1529,26 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 58
       },
       "id": 18,
       "options": {
         "legend": {
-          "calcs": ["mean", "lastNotNull"],
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1500,48 +1573,48 @@
           "refId": "B"
         }
       ],
-      "description": "Rate of lost and missed datapath lookups. Lost packets indicate kernel buffer overflows. Missed lookups require userspace processing.",
       "title": "Datapath Lookups Lost/Missed Rate",
       "type": "timeseries"
     }
   ],
+  "preload": false,
   "refresh": "30s",
-  "schemaVersion": 39,
-  "tags": ["ovs", "executive", "sla", "slo"],
+  "schemaVersion": 42,
+  "tags": [
+    "ovs",
+    "executive",
+    "sla",
+    "slo"
+  ],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": false,
           "text": "Prometheus",
-          "value": "prometheus"
+          "value": "PBFA97CFB590B2093"
         },
-        "hide": 0,
         "includeAll": false,
         "label": "Datasource",
-        "multi": false,
         "name": "datasource",
         "options": [],
         "query": "prometheus",
-        "queryValue": "",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "type": "datasource"
       },
       {
         "allValue": ".*",
         "current": {
-          "selected": true,
-          "text": ["All"],
-          "value": ["$__all"]
+          "text": "All",
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
         "definition": "label_values(ovs_info, system_id)",
-        "hide": 0,
         "includeAll": true,
         "label": "System ID",
         "multi": true,
@@ -1554,7 +1627,6 @@
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       }
@@ -1564,11 +1636,9 @@
     "from": "now-6h",
     "to": "now"
   },
-  "timeshift": null,
   "timepicker": {},
   "timezone": "",
   "title": "OVS Executive SLA/SLO Dashboard",
   "uid": "ovs-executive-sla-slo",
-  "version": 1,
-  "weekStart": ""
+  "version": 5
 }
