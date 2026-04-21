@@ -46,12 +46,12 @@ Download the latest release for your architecture:
 
 ```bash
 # Linux AMD64
-wget https://github.com/Liquescent-Development/ovs_exporter/releases/download/v2.3.1/ovs-exporter-2.3.1.linux-amd64.tar.gz
-tar xvzf ovs-exporter-2.3.1.linux-amd64.tar.gz
+wget https://github.com/Liquescent-Development/ovs_exporter/releases/download/v2.6.0/ovs-exporter-2.6.0.linux-amd64.tar.gz
+tar xvzf ovs-exporter-2.6.0.linux-amd64.tar.gz
 
 # Linux ARM64
-wget https://github.com/Liquescent-Development/ovs_exporter/releases/download/v2.3.1/ovs-exporter-2.3.1.linux-arm64.tar.gz
-tar xvzf ovs-exporter-2.3.1.linux-arm64.tar.gz
+wget https://github.com/Liquescent-Development/ovs_exporter/releases/download/v2.6.0/ovs-exporter-2.6.0.linux-arm64.tar.gz
+tar xvzf ovs-exporter-2.6.0.linux-arm64.tar.gz
 ```
 
 Install as a systemd service:
@@ -455,14 +455,14 @@ make coverage
 ### Release Process
 ```bash
 # 1. Update VERSION file
-echo "2.3.1" > VERSION
+echo "2.6.0" > VERSION
 
 # 2. Build release artifacts
 make dist
 
 # 3. Create git tag
-git tag -a v2.3.1 -m "Release v2.3.1"
-git push origin v2.3.1
+git tag -a v2.6.0 -m "Release v2.6.0"
+git push origin v2.6.0
 
 # 4. Upload to GitHub releases
 # Use GitHub UI or gh CLI
