@@ -1287,7 +1287,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 49
       },
       "id": 17,
       "panels": [],
@@ -1357,7 +1357,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 41
+        "y": 50
       },
       "id": 18,
       "options": {
@@ -1456,7 +1456,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 41
+        "y": 50
       },
       "id": 19,
       "options": {
@@ -1555,7 +1555,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 58
       },
       "id": 20,
       "options": {
@@ -1617,7 +1617,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 59
+        "y": 68
       },
       "id": 21,
       "panels": [],
@@ -1687,7 +1687,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 60
+        "y": 69
       },
       "id": 22,
       "options": {
@@ -1786,7 +1786,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 60
+        "y": 69
       },
       "id": 23,
       "options": {
@@ -1828,7 +1828,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 68
+        "y": 77
       },
       "id": 24,
       "panels": [],
@@ -1898,7 +1898,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 69
+        "y": 78
       },
       "id": 25,
       "options": {
@@ -1997,7 +1997,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 69
+        "y": 78
       },
       "id": 30,
       "options": {
@@ -2032,6 +2032,411 @@
       ],
       "title": "Coverage 5min Averages (showing active events only)",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 40,
+      "panels": [],
+      "title": "Tunnel BFD Health",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Number of BFD sessions on this compute that are NOT in state=up AND forwarding=true. Covers down, init, admin_down and cases where forwarding is false despite state=up (rare). Non-zero means at least one Geneve tunnel to a peer chassis is unhealthy — loss of BFD means N/S and E/W traffic via that tunnel is affected.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 0,
+        "y": 41
+      },
+      "id": 41,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(ovs_interface_bfd_up == 0) or vector(0)",
+          "instant": false,
+          "legendFormat": "not up",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Tunnel BFD Not Up",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Rate of BFD session state transitions per tunnel interface over the last 5 minutes. Steady zero is healthy. Spikes indicate flapping — a peer's tunnel is going up/down repeatedly, which typically means packet loss on the underlay, MTU mismatch, or the remote chassis is being restarted.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "flaps/s",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 7,
+        "x": 5,
+        "y": 41
+      },
+      "id": 42,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "rate(ovs_interface_bfd_flap_count_total[5m])",
+          "legendFormat": "{{name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Tunnel BFD Flap Rate (5m)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Current BFD state of every tunnel on this compute, with the BFD diagnostic strings reported by OVS. Sort by state to float down/init sessions to the top. remote_ip is the peer's Geneve endpoint — join on ovn_chassis_nb_cfg_timestamp_milliseconds{ip=<remote_ip>} to get the peer chassis hostname.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "state"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "up": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "up"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "down": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "down"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "init": {
+                        "color": "yellow",
+                        "index": 2,
+                        "text": "init"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "admin_down": {
+                        "color": "orange",
+                        "index": 3,
+                        "text": "admin_down"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "remote_state"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "up": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "up"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "down": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "down"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "init": {
+                        "color": "yellow",
+                        "index": 2,
+                        "text": "init"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "admin_down": {
+                        "color": "orange",
+                        "index": 3,
+                        "text": "admin_down"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 41
+      },
+      "id": 43,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "state"
+          }
+        ]
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "ovs_interface_bfd_info",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Tunnel BFD Sessions Detail",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "Value": true,
+              "job": true,
+              "instance": true,
+              "uuid": true
+            },
+            "indexByName": {
+              "system_id": 0,
+              "name": 1,
+              "remote_ip": 2,
+              "state": 3,
+              "remote_state": 4,
+              "diagnostic": 5,
+              "remote_diagnostic": 6
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
     }
   ],
   "preload": false,

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	_ "net/http/pprof"
 	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -221,6 +222,25 @@ var (
 		prometheus.BuildFQName(namespace, "", "interface_local_index"),
 		"Represents the local index associated with OVS interface.",
 		[]string{"system_id", "uuid"}, nil,
+	)
+	// OVS Interface: BFD (tunnel liveness)
+	// Populated on OVS tunnel interfaces (type=geneve, vxlan, ...) when BFD
+	// is enabled — either by ovn-controller for inter-chassis Geneve tunnels,
+	// or manually via ovs-vsctl set Interface <name> bfd:enable=true.
+	interfaceBfdUp = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "interface_bfd_up"),
+		"Whether the BFD session on an OVS interface is up and forwarding: 1 if Interface.bfd_status[state]=up AND Interface.bfd_status[forwarding]=true, 0 otherwise. Only emitted when BFD is configured on the interface.",
+		[]string{"system_id", "uuid", "name", "remote_ip"}, nil,
+	)
+	interfaceBfdFlapCount = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "interface_bfd_flap_count_total"),
+		"Number of times the BFD session on an OVS interface has transitioned state, as reported by Interface.bfd_status[flap_count]. Only emitted when BFD is configured on the interface.",
+		[]string{"system_id", "uuid", "name", "remote_ip"}, nil,
+	)
+	interfaceBfdInfo = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "interface_bfd_info"),
+		"Information about the BFD session on an OVS interface. Always 1. Labels carry the current BFD state and diagnostic strings reported by Interface.bfd_status: state and remote_state are one of up, down, init, admin_down; diagnostic and remote_diagnostic are BFD diagnostic codes as free-form strings.",
+		[]string{"system_id", "uuid", "name", "remote_ip", "state", "remote_state", "diagnostic", "remote_diagnostic"}, nil,
 	)
 	// OVS Interface Statistics: Receive errors
 	// See http://www.openvswitch.org/support/dist-docs/ovs-vswitchd.conf.db.5.html
@@ -663,6 +683,9 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- interfaceOfPort
 	ch <- interfaceIfIndex
 	ch <- interfaceLocalIndex
+	ch <- interfaceBfdUp
+	ch <- interfaceBfdFlapCount
+	ch <- interfaceBfdInfo
 	ch <- interfaceStatRxCrcError
 	ch <- interfaceStatRxDropped
 	ch <- interfaceStatRxFrameError
@@ -1245,6 +1268,47 @@ func (e *Exporter) GatherMetrics() {
 				e.Client.System.ID,
 				intf.UUID,
 			))
+			if intf.Bfd["enable"] == "true" {
+				remoteIP := intf.Options["remote_ip"]
+				state := intf.BfdStatus["state"]
+				up := 0.0
+				if state == "up" && intf.BfdStatus["forwarding"] == "true" {
+					up = 1.0
+				}
+				e.metrics = append(e.metrics, prometheus.MustNewConstMetric(
+					interfaceBfdUp,
+					prometheus.GaugeValue,
+					up,
+					e.Client.System.ID,
+					intf.UUID,
+					intf.Name,
+					remoteIP,
+				))
+				if flap, err := strconv.ParseFloat(intf.BfdStatus["flap_count"], 64); err == nil {
+					e.metrics = append(e.metrics, prometheus.MustNewConstMetric(
+						interfaceBfdFlapCount,
+						prometheus.CounterValue,
+						flap,
+						e.Client.System.ID,
+						intf.UUID,
+						intf.Name,
+						remoteIP,
+					))
+				}
+				e.metrics = append(e.metrics, prometheus.MustNewConstMetric(
+					interfaceBfdInfo,
+					prometheus.GaugeValue,
+					1,
+					e.Client.System.ID,
+					intf.UUID,
+					intf.Name,
+					remoteIP,
+					state,
+					intf.BfdStatus["remote_state"],
+					intf.BfdStatus["diagnostic"],
+					intf.BfdStatus["remote_diagnostic"],
+				))
+			}
 			e.metrics = append(e.metrics, prometheus.MustNewConstMetric(
 				interfaceIngressPolicingBurst,
 				prometheus.GaugeValue,
