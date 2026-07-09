@@ -2,6 +2,19 @@
 
 This directory contains configuration files to run ovs-exporter with OpenStack deployments managed by Kolla-Ansible.
 
+## Two ways to deploy
+
+- **Automated (recommended):** the [`ovs-ovn-exporter` Ansible role](roles/ovs-ovn-exporter/)
+  installs and configures **both** ovs-exporter and its companion
+  [ovn-exporter](https://github.com/lucadelmonte/ovn_exporter) across your fleet
+  (systemd unit, environment file, Kolla container dependencies, versioned
+  binary download). Start here if you use Ansible. An example playbook lives at
+  [`ovs-ovn-exporter.yml`](ovs-ovn-exporter.yml).
+- **Manual:** the step-by-step instructions below, using the standalone
+  `ovs-exporter.env` / `ovs-exporter-kolla.conf` / `ovs-exporter.yml` files in
+  this directory. Use this if you are not running Ansible or just want to
+  understand what the role does.
+
 ## Problem
 
 Kolla-Ansible deploys OVS components (vswitchd, ovsdb-server, ovn-controller) in Docker containers. The default ovs-exporter configuration expects these components to be running on the host with standard paths. This guide explains how to configure both Kolla and ovs-exporter to work together.

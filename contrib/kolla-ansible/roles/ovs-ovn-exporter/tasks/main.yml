@@ -1,0 +1,14 @@
+---
+# OVS exporter: install on nodes in 'openvswitch' group (network + compute)
+- name: Include OVS exporter tasks
+  include_tasks: ovs_exporter.yml
+  when:
+    - ovs_exporter_enabled | bool
+    - inventory_hostname in groups.get('openvswitch', [])
+
+# OVN exporter: install on nodes in 'ovn-database' group (control nodes with NB/SB/northd)
+- name: Include OVN exporter tasks
+  include_tasks: ovn_exporter.yml
+  when:
+    - ovn_exporter_enabled | bool
+    - inventory_hostname in groups.get('ovn-database', [])

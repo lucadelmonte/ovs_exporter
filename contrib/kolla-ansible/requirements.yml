@@ -1,0 +1,5 @@
+---
+# Collections required by the ovs-ovn-exporter role.
+# Install with: ansible-galaxy collection install -r requirements.yml
+collections:
+  - name: community.general  # provides community.general.capabilities (setcap on the binaries)

@@ -1,0 +1,14 @@
+[Unit]
+Description={{ ovs_exporter_description }}
+After=network.target
+
+[Service]
+User={{ ovs_exporter_user }}
+Group={{ ovs_exporter_group }}
+EnvironmentFile=-/etc/sysconfig/{{ ovs_exporter_service_name }}
+EnvironmentFile=-/etc/default/{{ ovs_exporter_service_name }}
+ExecStart={{ exporter_install_dir }}/ovs-exporter $OPTIONS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

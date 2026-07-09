@@ -1,0 +1,19 @@
+# Systemd drop-in override for Kolla container dependencies
+# Managed by Ansible - do not edit manually
+
+[Unit]
+# Require OVN database containers
+Requires={{ kolla_ovn_nb_container_service }}
+Requires={{ kolla_ovn_sb_container_service }}
+# Want northd (may run on a different host)
+Wants={{ kolla_ovn_northd_container_service }}
+After={{ kolla_ovn_nb_container_service }}
+After={{ kolla_ovn_sb_container_service }}
+After={{ kolla_ovn_northd_container_service }}
+
+[Service]
+# Kolla container units go active as soon as `docker start -a` runs, before the
+# daemons inside open their sockets. Wait up to 120s for all three OVN sockets
+# (NB, SB, vswitchd) so the exporter does not race them and trip StartLimitBurst
+# at boot. This unit only runs on ovn-database hosts, which have all three.
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 120); do [ -S /run/ovn/ovnnb_db.sock ] && [ -S /run/ovn/ovnsb_db.sock ] && [ -S /var/run/openvswitch/db.sock ] && exit 0; sleep 1; done; exit 1'

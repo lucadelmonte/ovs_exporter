@@ -1,0 +1,193 @@
+---
+- name: Get latest OVN exporter version from GitHub
+  when: ovn_exporter_version == "latest"
+  block:
+    - name: Fetch latest OVN exporter release info
+      uri:
+        url: "https://api.github.com/repos/{{ ovn_exporter_github_repo }}/releases/latest"
+        return_content: yes
+      register: ovn_github_release
+      check_mode: false
+
+    - name: Set OVN exporter version from latest release
+      set_fact:
+        ovn_exporter_actual_version: "{{ ovn_github_release.json.tag_name | regex_replace('^v', '') }}"
+
+- name: Use specified OVN exporter version
+  when: ovn_exporter_version != "latest"
+  set_fact:
+    ovn_exporter_actual_version: "{{ ovn_exporter_version | regex_replace('^v', '') }}"
+
+# Check installed version
+- name: Check if OVN exporter binary exists
+  stat:
+    path: "{{ exporter_install_dir }}/ovn-exporter"
+  register: ovn_exporter_binary
+
+- name: Get installed OVN exporter version
+  command: "{{ exporter_install_dir }}/ovn-exporter --version"
+  register: ovn_exporter_installed_version
+  changed_when: false
+  failed_when: false
+  when: ovn_exporter_binary.stat.exists
+
+- name: Parse installed OVN exporter version
+  set_fact:
+    ovn_exporter_current_version: "{{ (ovn_exporter_installed_version.stdout | regex_search('ovn-exporter\\s+([0-9]+\\.[0-9]+\\.[0-9]+)', '\\1') | default(['0'], true)) | first }}"
+  when: ovn_exporter_binary.stat.exists and ovn_exporter_installed_version.rc == 0
+
+- name: Set OVN exporter current version to 0 if not installed or version check failed
+  set_fact:
+    ovn_exporter_current_version: "0"
+  when: not ovn_exporter_binary.stat.exists or ovn_exporter_installed_version.rc != 0
+
+- name: Determine if OVN exporter needs installation
+  set_fact:
+    ovn_exporter_needs_install: "{{ ovn_exporter_current_version != ovn_exporter_actual_version }}"
+
+- name: Display OVN exporter version status
+  debug:
+    msg: >-
+      OVN exporter: installed={{ ovn_exporter_current_version | default('none') }},
+      target={{ ovn_exporter_actual_version }},
+      needs_install={{ ovn_exporter_needs_install }}
+
+# Create system group
+- name: Create OVN exporter group
+  become: yes
+  group:
+    name: "{{ ovn_exporter_group }}"
+    system: yes
+    state: present
+
+# Create system user
+- name: Create OVN exporter user
+  become: yes
+  user:
+    name: "{{ ovn_exporter_user }}"
+    group: "{{ ovn_exporter_group }}"
+    system: yes
+    shell: /bin/bash
+    home: "/var/lib/{{ ovn_exporter_service_name }}"
+    create_home: yes
+    state: present
+
+# Ensure data directory exists with correct ownership
+- name: Create OVN exporter data directory
+  become: yes
+  file:
+    path: "/var/lib/{{ ovn_exporter_service_name }}"
+    state: directory
+    owner: "{{ ovn_exporter_user }}"
+    group: "{{ ovn_exporter_group }}"
+    mode: '0755'
+
+# Download and install binary (only if version differs)
+- name: Install OVN exporter binary
+  when: ovn_exporter_needs_install
+  block:
+    - name: Create temporary directory for OVN exporter
+      become: yes
+      file:
+        path: "{{ exporter_tmp_dir }}/ovn-exporter"
+        state: directory
+        mode: '0755'
+
+    - name: Download OVN exporter release
+      become: yes
+      get_url:
+        url: "https://github.com/{{ ovn_exporter_github_repo }}/releases/download/v{{ ovn_exporter_actual_version }}/ovn-exporter_{{ ovn_exporter_actual_version }}_linux_amd64.tar.gz"
+        dest: "{{ exporter_tmp_dir }}/ovn-exporter_{{ ovn_exporter_actual_version }}_linux_amd64.tar.gz"
+        mode: '0644'
+
+    - name: Extract OVN exporter archive
+      become: yes
+      unarchive:
+        src: "{{ exporter_tmp_dir }}/ovn-exporter_{{ ovn_exporter_actual_version }}_linux_amd64.tar.gz"
+        dest: "{{ exporter_tmp_dir }}/ovn-exporter"
+        remote_src: yes
+
+    - name: Install OVN exporter binary
+      become: yes
+      copy:
+        src: "{{ exporter_tmp_dir }}/ovn-exporter/ovn-exporter"
+        dest: "{{ exporter_install_dir }}/ovn-exporter"
+        mode: '0755'
+        remote_src: yes
+      notify: Restart ovn-exporter
+
+    # Set capabilities on binary
+    - name: Set capabilities on OVN exporter binary
+      become: yes
+      community.general.capabilities:
+        path: "{{ exporter_install_dir }}/ovn-exporter"
+        capability: cap_dac_override+ep
+        state: present
+      ignore_errors: yes
+
+    # Cleanup
+    - name: Clean up OVN exporter temporary files
+      become: yes
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ exporter_tmp_dir }}/ovn-exporter"
+        - "{{ exporter_tmp_dir }}/ovn-exporter_{{ ovn_exporter_actual_version }}_linux_amd64.tar.gz"
+
+# Install systemd service from template
+- name: Install OVN exporter systemd service
+  become: yes
+  template:
+    src: ovn-exporter.service.j2
+    dest: "/usr/lib/systemd/system/{{ ovn_exporter_service_name }}.service"
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart ovn-exporter
+
+# Install environment file
+- name: Create OVN exporter environment file (Debian/Ubuntu)
+  become: yes
+  template:
+    src: ovn-exporter.env.j2
+    dest: "/etc/default/{{ ovn_exporter_service_name }}"
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+  notify: Restart ovn-exporter
+
+- name: Create OVN exporter environment file (RHEL/CentOS)
+  become: yes
+  template:
+    src: ovn-exporter.env.j2
+    dest: "/etc/sysconfig/{{ ovn_exporter_service_name }}"
+    mode: '0644'
+  when: ansible_os_family == "RedHat"
+  notify: Restart ovn-exporter
+
+# Install Kolla systemd drop-in override
+- name: Create systemd drop-in directory for OVN exporter
+  become: yes
+  file:
+    path: "/etc/systemd/system/{{ ovn_exporter_service_name }}.service.d"
+    state: directory
+    mode: '0755'
+
+- name: Install OVN exporter Kolla systemd override
+  become: yes
+  template:
+    src: ovn-exporter-kolla.conf.j2
+    dest: "/etc/systemd/system/{{ ovn_exporter_service_name }}.service.d/kolla.conf"
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart ovn-exporter
+
+# Enable and start service
+- name: Enable and start OVN exporter service
+  become: yes
+  systemd:
+    name: "{{ ovn_exporter_service_name }}"
+    state: started
+    enabled: yes
+    daemon_reload: yes
