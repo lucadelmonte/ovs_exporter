@@ -1,0 +1,13 @@
+# Systemd drop-in override for Kolla container dependencies
+# Managed by Ansible - do not edit manually
+
+[Unit]
+# Require OVS container to be running
+Requires={{ kolla_ovs_container_service }}
+After={{ kolla_ovs_container_service }}
+
+[Service]
+# The kolla container unit goes active as soon as `docker start -a` runs, before
+# ovsdb-server inside the container opens its socket. Wait up to 60s for the
+# socket so the exporter does not race the DB and trip StartLimitBurst at boot.
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 120); do [ -S /var/run/openvswitch/db.sock ] && exit 0; sleep 1; done; exit 1'

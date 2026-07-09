@@ -1,0 +1,22 @@
+---
+# Example playbook for the ovs-ovn-exporter role.
+#
+# The role decides what to install per host based on Kolla-Ansible inventory
+# group membership, so running it against `all` is safe:
+#   - ovs-exporter is installed on hosts in the `openvswitch` group
+#   - ovn-exporter is installed on hosts in the `ovn-database` group
+#
+# Point roles_path at the roles/ directory next to this file, e.g.:
+#   ANSIBLE_ROLES_PATH=./roles ansible-playbook -i /etc/kolla/multinode ovs-ovn-exporter.yml
+#
+# See roles/ovs-ovn-exporter/README.md for prerequisites (exposing the OVS/OVN
+# sockets to the host via *_extra_volumes) and all tunable variables.
+
+- name: Install OVS/OVN Prometheus exporters
+  hosts: all
+  become: true
+  roles:
+    - role: ovs-ovn-exporter
+      # Pin versions instead of tracking latest (optional):
+      # ovs_exporter_version: "2.8.0"
+      # ovn_exporter_version: "1.3.0"

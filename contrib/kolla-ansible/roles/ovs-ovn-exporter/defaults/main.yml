@@ -1,0 +1,62 @@
+---
+# OVS/OVN Exporter Role Defaults
+
+# Installation directory
+exporter_install_dir: "/usr/sbin"
+
+# Temp directory for downloads
+exporter_tmp_dir: "/tmp"
+
+# OVS Exporter settings
+ovs_exporter_enabled: true
+ovs_exporter_github_repo: "lucadelmonte/ovs_exporter"
+ovs_exporter_version: "latest"
+ovs_exporter_port: 9475
+ovs_exporter_service_name: "ovs-exporter"
+ovs_exporter_user: "ovs_exporter"
+ovs_exporter_group: "ovs_exporter"
+ovs_exporter_description: "Prometheus OVS Exporter"
+ovs_exporter_poll_interval: 15
+ovs_exporter_poll_timeout: 2
+
+# OVN Exporter settings (only on controller/network nodes)
+ovn_exporter_enabled: true
+ovn_exporter_github_repo: "lucadelmonte/ovn_exporter"
+ovn_exporter_version: "latest"
+ovn_exporter_port: 9476
+ovn_exporter_service_name: "ovn-exporter"
+ovn_exporter_user: "ovn_exporter"
+ovn_exporter_group: "ovn_exporter"
+ovn_exporter_description: "Prometheus OVN Exporter"
+ovn_exporter_poll_interval: 15
+ovn_exporter_poll_timeout: 2
+
+# Kolla-specific paths
+kolla_ovs_socket: "unix:/var/run/openvswitch/db.sock"
+kolla_ovs_data: "/var/lib/docker/volumes/openvswitch_db/_data/conf.db"
+kolla_ovs_log: "/var/log/kolla/openvswitch/ovsdb-server.log"
+kolla_vswitchd_log: "/var/log/kolla/openvswitch/ovs-vswitchd.log"
+kolla_ovn_controller_log: "/var/log/kolla/openvswitch/ovn-controller.log"
+kolla_ovn_controller_pid: "/var/run/openvswitch/ovn-controller/ovn-controller.pid"
+
+kolla_ovn_nb_socket: "unix:/run/ovn/ovnnb_db.sock"
+kolla_ovn_nb_ctl: "unix:/run/ovn/ovnnb_db.ctl"
+kolla_ovn_nb_pid: "/run/ovn/ovnnb_db.pid"
+kolla_ovn_nb_data: "/var/lib/docker/volumes/ovn_nb_db/_data/ovnnb.db"
+kolla_ovn_nb_log: "/var/log/kolla/openvswitch/ovn-nb-db.log"
+
+kolla_ovn_sb_socket: "unix:/run/ovn/ovnsb_db.sock"
+kolla_ovn_sb_ctl: "unix:/run/ovn/ovnsb_db.ctl"
+kolla_ovn_sb_pid: "/run/ovn/ovnsb_db.pid"
+kolla_ovn_sb_data: "/var/lib/docker/volumes/ovn_sb_db/_data/ovnsb.db"
+kolla_ovn_sb_log: "/var/log/kolla/openvswitch/ovn-sb-db.log"
+
+kolla_ovn_northd_pid: "/run/ovn/ovn-northd.pid"
+kolla_ovn_northd_log: "/var/log/kolla/openvswitch/ovn-northd.log"
+kolla_ovn_northd_ctl: "unix:/run/ovn/ovn-northd.ctl"
+
+# Systemd dependencies for Kolla
+kolla_ovs_container_service: "kolla-openvswitch_db-container.service"
+kolla_ovn_nb_container_service: "kolla-ovn_nb_db-container.service"
+kolla_ovn_sb_container_service: "kolla-ovn_sb_db-container.service"
+kolla_ovn_northd_container_service: "kolla-ovn_northd-container.service"

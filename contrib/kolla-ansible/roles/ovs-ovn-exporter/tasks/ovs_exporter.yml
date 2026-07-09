@@ -1,0 +1,193 @@
+---
+- name: Get latest OVS exporter version from GitHub
+  when: ovs_exporter_version == "latest"
+  block:
+    - name: Fetch latest OVS exporter release info
+      uri:
+        url: "https://api.github.com/repos/{{ ovs_exporter_github_repo }}/releases/latest"
+        return_content: yes
+      register: ovs_github_release
+      check_mode: false
+
+    - name: Set OVS exporter version from latest release
+      set_fact:
+        ovs_exporter_actual_version: "{{ ovs_github_release.json.tag_name | regex_replace('^v', '') }}"
+
+- name: Use specified OVS exporter version
+  when: ovs_exporter_version != "latest"
+  set_fact:
+    ovs_exporter_actual_version: "{{ ovs_exporter_version | regex_replace('^v', '') }}"
+
+# Check installed version
+- name: Check if OVS exporter binary exists
+  stat:
+    path: "{{ exporter_install_dir }}/ovs-exporter"
+  register: ovs_exporter_binary
+
+- name: Get installed OVS exporter version
+  command: "{{ exporter_install_dir }}/ovs-exporter --version"
+  register: ovs_exporter_installed_version
+  changed_when: false
+  failed_when: false
+  when: ovs_exporter_binary.stat.exists
+
+- name: Parse installed OVS exporter version
+  set_fact:
+    ovs_exporter_current_version: "{{ (ovs_exporter_installed_version.stdout | regex_search('ovs-exporter\\s+([0-9]+\\.[0-9]+\\.[0-9]+)', '\\1') | default(['0'], true)) | first }}"
+  when: ovs_exporter_binary.stat.exists and ovs_exporter_installed_version.rc == 0
+
+- name: Set OVS exporter current version to 0 if not installed or version check failed
+  set_fact:
+    ovs_exporter_current_version: "0"
+  when: not ovs_exporter_binary.stat.exists or ovs_exporter_installed_version.rc != 0
+
+- name: Determine if OVS exporter needs installation
+  set_fact:
+    ovs_exporter_needs_install: "{{ ovs_exporter_current_version != ovs_exporter_actual_version }}"
+
+- name: Display OVS exporter version status
+  debug:
+    msg: >-
+      OVS exporter: installed={{ ovs_exporter_current_version | default('none') }},
+      target={{ ovs_exporter_actual_version }},
+      needs_install={{ ovs_exporter_needs_install }}
+
+# Create system group
+- name: Create OVS exporter group
+  become: yes
+  group:
+    name: "{{ ovs_exporter_group }}"
+    system: yes
+    state: present
+
+# Create system user
+- name: Create OVS exporter user
+  become: yes
+  user:
+    name: "{{ ovs_exporter_user }}"
+    group: "{{ ovs_exporter_group }}"
+    system: yes
+    shell: /bin/bash
+    home: "/var/lib/{{ ovs_exporter_service_name }}"
+    create_home: yes
+    state: present
+
+# Ensure data directory exists with correct ownership
+- name: Create OVS exporter data directory
+  become: yes
+  file:
+    path: "/var/lib/{{ ovs_exporter_service_name }}"
+    state: directory
+    owner: "{{ ovs_exporter_user }}"
+    group: "{{ ovs_exporter_group }}"
+    mode: '0755'
+
+# Download and install binary (only if version differs)
+- name: Install OVS exporter binary
+  when: ovs_exporter_needs_install
+  block:
+    - name: Create temporary directory for OVS exporter
+      become: yes
+      file:
+        path: "{{ exporter_tmp_dir }}/ovs-exporter"
+        state: directory
+        mode: '0755'
+
+    - name: Download OVS exporter release
+      become: yes
+      get_url:
+        url: "https://github.com/{{ ovs_exporter_github_repo }}/releases/download/v{{ ovs_exporter_actual_version }}/ovs-exporter_{{ ovs_exporter_actual_version }}_linux_amd64.tar.gz"
+        dest: "{{ exporter_tmp_dir }}/ovs-exporter_{{ ovs_exporter_actual_version }}_linux_amd64.tar.gz"
+        mode: '0644'
+
+    - name: Extract OVS exporter archive
+      become: yes
+      unarchive:
+        src: "{{ exporter_tmp_dir }}/ovs-exporter_{{ ovs_exporter_actual_version }}_linux_amd64.tar.gz"
+        dest: "{{ exporter_tmp_dir }}/ovs-exporter"
+        remote_src: yes
+
+    - name: Install OVS exporter binary
+      become: yes
+      copy:
+        src: "{{ exporter_tmp_dir }}/ovs-exporter/ovs-exporter"
+        dest: "{{ exporter_install_dir }}/ovs-exporter"
+        mode: '0755'
+        remote_src: yes
+      notify: Restart ovs-exporter
+
+    # Set capabilities on binary
+    - name: Set capabilities on OVS exporter binary
+      become: yes
+      community.general.capabilities:
+        path: "{{ exporter_install_dir }}/ovs-exporter"
+        capability: cap_dac_override+ep
+        state: present
+      ignore_errors: yes
+
+    # Cleanup
+    - name: Clean up OVS exporter temporary files
+      become: yes
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ exporter_tmp_dir }}/ovs-exporter"
+        - "{{ exporter_tmp_dir }}/ovs-exporter_{{ ovs_exporter_actual_version }}_linux_amd64.tar.gz"
+
+# Install systemd service from template
+- name: Install OVS exporter systemd service
+  become: yes
+  template:
+    src: ovs-exporter.service.j2
+    dest: "/usr/lib/systemd/system/{{ ovs_exporter_service_name }}.service"
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart ovs-exporter
+
+# Install environment file
+- name: Create OVS exporter environment file (Debian/Ubuntu)
+  become: yes
+  template:
+    src: ovs-exporter.env.j2
+    dest: "/etc/default/{{ ovs_exporter_service_name }}"
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+  notify: Restart ovs-exporter
+
+- name: Create OVS exporter environment file (RHEL/CentOS)
+  become: yes
+  template:
+    src: ovs-exporter.env.j2
+    dest: "/etc/sysconfig/{{ ovs_exporter_service_name }}"
+    mode: '0644'
+  when: ansible_os_family == "RedHat"
+  notify: Restart ovs-exporter
+
+# Install Kolla systemd drop-in override
+- name: Create systemd drop-in directory for OVS exporter
+  become: yes
+  file:
+    path: "/etc/systemd/system/{{ ovs_exporter_service_name }}.service.d"
+    state: directory
+    mode: '0755'
+
+- name: Install OVS exporter Kolla systemd override
+  become: yes
+  template:
+    src: ovs-exporter-kolla.conf.j2
+    dest: "/etc/systemd/system/{{ ovs_exporter_service_name }}.service.d/kolla.conf"
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart ovs-exporter
+
+# Enable and start service
+- name: Enable and start OVS exporter service
+  become: yes
+  systemd:
+    name: "{{ ovs_exporter_service_name }}"
+    state: started
+    enabled: yes
+    daemon_reload: yes
